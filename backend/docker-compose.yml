@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  user-auth-service:
+    build:
+      context: ./user-auth-service
+    ports:
+      - "8080:8080"
+    environment:
+      - MONGO_URI=${MONGO_URI_AUTH_SERVICE}
+      - JWT_SECRET=${JWT_SECRET}
+      - REFRESH_SECRET=${REFRESH_SECRET}
+    depends_on:
+      - mongo
+
+  video-upload-service:
+    build:
+      context: ./video-upload-service
+    ports:
+      - "6969:6969"
+    environment:
+      - MONGO_URI=${MONGO_URI_VIDEO_UPLOAD}
+      - JWT_SECRET=${JWT_SECRET}
+      - VIDEO_STORAGE_PATH=/app/videos
+    volumes:
+      - video-data:/app/videos
+    depends_on:
+      - mongo
+
+  video-search-service:
+    build:
+      context: ./video-search-service
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=${MONGO_URI_VIDEO_SEARCH}
+    depends_on:
+      - mongo
+
+  video-service:
+    build:
+      context: ./video-service
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGO_URI=${MONGO_URI_VIDEO_SERVICE}
+      - VIDEO_STORAGE_PATH=/app/videos
+    volumes:
+      - video-data:/app/videos
+    depends_on:
+      - mongo
+
+  comment-service:
+    build:
+      context: ./comment-service
+    ports:
+      - "5050:5050"
+    environment:
+      - MONGO_URI=${MONGO_URI_COMMENT_SERVICE}
+    depends_on:
+      - mongo
+
+  service-registry:
+    build:
+      context: ./service-registry
+    ports:
+      - "3000:3000"
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
+  video-data:
